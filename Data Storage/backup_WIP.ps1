@@ -28,18 +28,19 @@ Write-Host "Backup finished at:- $(Get-date) - $FoldersToBackup - $SaveToFolder 
 #endregion
 
 # Function calls the installed prgram 7zip
-function create-7zip([String] $FoldersToBackup, [String] $zipFilePath, [String] $ExcludedFileTypes){
+function create-7zip([String] $FoldersToBackup, [String] $zipFilePath, [String] $ExcludedFolders, [String]$ExcludedFileTypes){
     [string]$pathToZipExe = "$($Env:ProgramFiles)\7-Zip\7z.exe";
-    if ($ExcludedFileTypes){
+    if ($ExcludedFolders -and $ExcludedFileTypes){
+        [Array]$arguments = "a", "-tzip", "$zipFilePath", $FoldersToBackup, "-r" , "-xr!$ExcludedFolders" , "-xr!$ExcludedFileTypes";
+    } elseif($ExcludedFolders) {
+        [Array]$arguments = "a", "-tzip", "$zipFilePath", $FoldersToBackup, "-r" , "-xr!$ExcludedFolders";
+    } elseif($ExcludedFileTypes){
         [Array]$arguments = "a", "-tzip", "$zipFilePath", $FoldersToBackup, "-r" , "-xr!$ExcludedFileTypes";
     } else {
         [Array]$arguments = "a", "-tzip", "$zipFilePath", $FoldersToBackup, "-r";
     }
     & $pathToZipExe $arguments;
 }
-
-
-
 
 #function prepare-backup($FoldersToBackup, $SaveToFolder, $ExcludedFolders, $ExcludedFileTypes){
 #    $tempDir = "C:\tempDir\";
