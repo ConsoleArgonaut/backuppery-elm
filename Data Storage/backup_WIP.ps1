@@ -1,49 +1,60 @@
-﻿function Backup($sourceDir, $BackupDir) {
+﻿function backup($FoldersToBackup, $SaveToFolder, $ExcludedFolders, $ExcludedFileTypes) {
 # Save date to variable
 [string]$date = (Get-Date -f yyyy-MM-dd);
 # Name our zip file
 [string]$zipFileName = ([string]::Format("Backup_{0}.zip", $date));
 # backup concatanated with file path
-[string]$zipFilePath = ([string]::Format("{0}{1}", $sourceDir, $zipFileName));
+[string]$zipFilePath = ([string]::Format("{0}{1}", $FoldersToBackup, $zipFileName));
 try
 {
-# $sourceDir = Read-Host "Enter Dir location, without ending backslash";
-# backup concatanated with file path
-# $zipFilePath = ([string]::Format("{0}\{1}", $sourceDir, $zipFileName));
 
 # Sets the current working location to the specified location
-Set-Location $sourceDir;
+Set-Location $FoldersToBackup;
 
 # Call function create-7zip to create a ZIP-Archive
-create-7zip $sourceDir $zipFilePath $ExcludedFileTypes;
+create-7zip $FoldersToBackup $zipFilePath $ExcludedFileTypes;
 # Move item from Source folder to designated destination
-Move-Item $zipFilePath $BackupDir -Force;
+Move-Item $zipFilePath $SaveToFolder -Force;
 }
 # Catch exceptions
 catch {
-Write-Host "System.Exception on:- $(Get-date) - $($Error[0].Exception.Message) - $sourceDir - $BackupDir - $zipFilePath";
+Write-Host "System.Exception on:- $(Get-date) - $($Error[0].Exception.Message) - $FoldersToBackup - $SaveToFolder - $zipFilePath";
 }
 finally
 {
-Write-Host "Backup finished at:- $(Get-date) - $sourceDir - $BackupDir - $zipFilePath";
+Write-Host "Backup finished at:- $(Get-date) - $FoldersToBackup - $SaveToFolder - $zipFilePath";
 }
 }
 #endregion
 
 # Function calls the installed prgram 7zip
-function create-7zip([String] $sourceDir, [String] $zipFilePath, [String] $ExcludedFileTypes){
+function create-7zip([String] $FoldersToBackup, [String] $zipFilePath, [String] $ExcludedFileTypes){
     [string]$pathToZipExe = "$($Env:ProgramFiles)\7-Zip\7z.exe";
     if ($ExcludedFileTypes){
-        [Array]$arguments = "a", "-tzip", "$zipFilePath", $sourceDir, "-r" , "-xr!$ExcludedFileTypes";
+        [Array]$arguments = "a", "-tzip", "$zipFilePath", $FoldersToBackup, "-r" , "-xr!$ExcludedFileTypes";
     } else {
-        [Array]$arguments = "a", "-tzip", "$zipFilePath", $sourceDir, "-r";
+        [Array]$arguments = "a", "-tzip", "$zipFilePath", $FoldersToBackup, "-r";
     }
     & $pathToZipExe $arguments;
 }
 
-# This variable contains the path where the backup should be saved to
-[string]$BackupDir = "C:\Processing\";
-# the variable contains the path to the directory which the user wants to back-up
-[string]$sourceDir = "C:\Processing\";
- 
-Backup $sourceDir $BackupDir;
+
+
+
+#function prepare-backup($FoldersToBackup, $SaveToFolder, $ExcludedFolders, $ExcludedFileTypes){
+#    $tempDir = "C:\tempDir\";
+#    cd "C:\";
+#    if(!$local.Equals("C:\")){
+#        cd "C:\";
+#        if((Test-Path $tempDir) -eq 0)
+#        {
+#            mkdir $tempDir;
+#        }
+#    }
+#    for ($i = 0; $i -lt $FoldersToBackup.Count ; $i++) {
+#        $FoldersToBackup = $FoldersToBackup[$i];
+#        Move-Item -Path $FoldersToBackup -Destination "C:\tempDir\" -Exclude $ExcludedFolders -Force;
+#    }
+#    $FoldersToBackup = $tempDir;
+#    backup $FoldersToBackup $SaveToFolder $ExcludedFolders $ExcludedFileTypes;
+#}
